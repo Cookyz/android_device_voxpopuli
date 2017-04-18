@@ -813,8 +813,8 @@ struct power_module HAL_MODULE_INFO_SYM = {
         .module_api_version = POWER_MODULE_API_VERSION_0_5,
         .hal_api_version = HARDWARE_HAL_API_VERSION,
         .id = POWER_HARDWARE_MODULE_ID,
-        .name = "QCOM Power HAL",
-        .author = "Qualcomm",
+        .name = "Vox Populi Power HAL",
+        .author = "joshuous",
         .methods = &power_module_methods,
     },
 

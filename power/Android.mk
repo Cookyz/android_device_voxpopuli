@@ -1,7 +1,5 @@
 LOCAL_PATH := $(call my-dir)
 
-ifeq ($(call is-vendor-board-platform,QCOM),true)
-
 # HAL module implemenation stored in
 # hw/<POWERS_HARDWARE_MODULE_ID>.<ro.hardware>.so
 include $(CLEAR_VARS)
@@ -28,8 +26,6 @@ ifneq ($(TARGET_TAP_TO_WAKE_NODE),)
 LOCAL_CFLAGS += -DTAP_TO_WAKE_NODE=\"$(TARGET_TAP_TO_WAKE_NODE)\"
 endif
 
-LOCAL_MODULE := power.marlin
+LOCAL_MODULE := power.$(TARGET_BOARD_PLATFORM)
 LOCAL_MODULE_TAGS := optional
 include $(BUILD_SHARED_LIBRARY)
-
-endif
