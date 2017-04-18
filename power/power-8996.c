@@ -132,13 +132,20 @@ static int process_cam_preview_hint(void *metadata)
 static int process_boost(int boost_handle, int duration)
 {
     char governor[80];
-    int eas_launch_resources[] = {0x40804000, 0xFFF, 0x40804100, 0xFFF,
-                                         0x40800000, 0xFFF, 0x40800100, 0xFFF,
-                                         0x41800000, 140,   0x40400000, 0x1};
-    int hmp_launch_resources[] = {0x40C00000, 0x1,   0x40804000, 0xFFF,
-                                         0x40804100, 0xFFF, 0x40800000, 0xFFF,
-                                         0x40800100, 0xFFF, 0x41800000, 140,
-                                         0x40400000, 0x1};
+    int eas_launch_resources[] = {  MAX_FREQ_BIG_CORE_0, 0xFFF, 
+                                    MAX_FREQ_LITTLE_CORE_0, 0xFFF,
+                                    MIN_FREQ_BIG_CORE_0, 0xFFF, 
+                                    MIN_FREQ_LITTLE_CORE_0, 0xFFF,
+                                    CPUBW_HWMON_MIN_FREQ, 140,   
+                                    ALL_CPUS_PWR_CLPS_DIS_V3, 0x1};
+
+    int hmp_launch_resources[] = {  SCHED_BOOST_ON_V3, 0x1,   
+                                    MAX_FREQ_BIG_CORE_0, 0xFFF,
+                                    MAX_FREQ_LITTLE_CORE_0, 0xFFF, 
+                                    MIN_FREQ_BIG_CORE_0, 0xFFF,
+                                    MIN_FREQ_LITTLE_CORE_0, 0xFFF, 
+                                    CPUBW_HWMON_MIN_FREQ, 140,
+                                    ALL_CPUS_PWR_CLPS_DIS_V3, 0x1};
     int* launch_resources;
     size_t launch_resources_size;
 

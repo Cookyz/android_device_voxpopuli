@@ -448,11 +448,17 @@ static void power_hint(struct power_module *module, power_hint_t hint,
             if (is_eas_governor(governor)) {
                 // Setting the value of foreground schedtune boost to 50 and
                 // scaling_min_freq to 1100MHz.
-                int resources[] = {0x40800000, 1100, 0x40800100, 1100, 0x42C0C000, 0x32, 0x41800000, 0x33};
-                interaction(duration, sizeof(resources)/sizeof(resources[0]), resources);
+                int eas_interaction_resources[] = { MIN_FREQ_BIG_CORE_0, 1100, 
+                                                    MIN_FREQ_LITTLE_CORE_0, 1100, 
+                                                    STOR_CLK_SCALE_DIS, 0x32, 
+                                                    CPUBW_HWMON_MIN_FREQ, 0x33};
+                interaction(duration, sizeof(eas_interaction_resources)/sizeof(eas_interaction_resources[0]), eas_interaction_resources);
             } else { // Scheduler is HMP.
-                int resources[] = {0x41800000, 0x33, 0x40800000, 1000, 0x40800100, 1000, 0x40C00000, 0x1};
-                interaction(duration, sizeof(resources)/sizeof(resources[0]), resources);
+                int hmp_interaction_resources[] = { CPUBW_HWMON_MIN_FREQ, 0x33, 
+                                                    MIN_FREQ_BIG_CORE_0, 1000, 
+                                                    MIN_FREQ_LITTLE_CORE_0, 1000, 
+                                                    SCHED_BOOST_ON_V3, 0x1};
+                interaction(duration, sizeof(hmp_interaction_resources)/sizeof(hmp_interaction_resources[0]), hmp_interaction_resources);
             }
             pthread_mutex_unlock(&s_interaction_lock);
         }
