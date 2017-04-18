@@ -23,8 +23,12 @@ ifneq ($(TARGET_USES_AOSP),true)
     LOCAL_CFLAGS += -DEXTRA_POWERHAL_HINTS
 endif
 
-LOCAL_MODULE := power.marlin
+# Double tap to wake
+ifneq ($(TARGET_TAP_TO_WAKE_NODE),)
+LOCAL_CFLAGS += -DTAP_TO_WAKE_NODE=\"$(TARGET_TAP_TO_WAKE_NODE)\"
+endif
 
+LOCAL_MODULE := power.marlin
 LOCAL_MODULE_TAGS := optional
 include $(BUILD_SHARED_LIBRARY)
 
