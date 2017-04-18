@@ -20,3 +20,13 @@ int is_eas_governor(const char *governor) {
     }
     return 0;
 }
+
+void get_int(const char* file_path, int* value, int fallback_value) {
+  FILE *file;
+  file = fopen(file_path, "r");
+  if (file == NULL) {
+      *value = fallback_value;
+  }
+  fscanf(file, "%d", value);
+  fclose(file);
+}

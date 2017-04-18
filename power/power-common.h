@@ -43,6 +43,17 @@
 #define SCHEDUTIL_GOVERNOR "schedutil"
 #define PWRUTIL_GOVERNOR "pwrutil"
 
+#define ENABLE_INTERACTION_BOOST_PATH		"/dev/power/enable_interaction_boost"
+#define FLING_MIN_BOOST_DURATION_PATH 		"/dev/power/fling_min_boost_duration"
+#define FLING_MAX_BOOST_DURATION_PATH 		"/dev/power/fling_max_boost_duration"
+#define FLING_BOOST_TOPAPP_PATH 		"/dev/power/fling_boost_topapp"
+#define FLING_MIN_FREQ_BIG_PATH 		"/dev/power/fling_min_freq_big"
+#define FLING_MIN_FREQ_LITTLE_PATH 		"/dev/power/fling_min_freq_little"
+#define TOUCH_BOOST_DURATION_PATH 		"/dev/power/touch_boost_duration"
+#define TOUCH_BOOST_TOPAPP_PATH 		"/dev/power/touch_boost_topapp"
+#define TOUCH_MIN_FREQ_BIG_PATH 		"/dev/power/touch_min_freq_big"
+#define TOUCH_MIN_FREQ_LITTLE_PATH 		"/dev/power/touch_min_freq_little"
+
 #define HINT_HANDLED (0)
 #define HINT_NONE (-1)
 
@@ -55,3 +66,4 @@ enum CPU_GOV_CHECK {
 
 const char * eas_governors[];
 int is_eas_governor(const char *governor);
+void get_int(const char* file_path, int* value, int fallback_value);

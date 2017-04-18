@@ -104,6 +104,18 @@ static pthread_mutex_t s_interaction_lock = PTHREAD_MUTEX_INITIALIZER;
 static struct timespec s_previous_boost_timespec;
 static int s_previous_duration;
 
+// Initialise Vox Populi variables
+int enable_interaction_boost = -1;
+int fling_min_boost_duration = -1;
+int fling_max_boost_duration = -1;
+int fling_boost_topapp = -1;
+int fling_min_freq_big = -1;
+int fling_min_freq_little = -1;
+int touch_boost_duration = -1;
+int touch_boost_topapp = -1;
+int touch_min_freq_big = -1;
+int touch_min_freq_little = -1;
+
 static struct hw_module_methods_t power_module_methods = {
     .open = NULL,
 };
@@ -424,19 +436,21 @@ static void power_hint(struct power_module *module, power_hint_t hint,
                 return;
             }
 
-            // Default boost duration for taps
-            int min_duration = 350; // 0.350s by default
-            int duration = min_duration;
+            // Check if interaction_boost is enabled
+            get_int(ENABLE_INTERACTION_BOOST_PATH, &enable_interaction_boost, 1);
+            if (!enable_interaction_boost)
+                break;
+            int duration;
             bool isFling = false;
 
-            // Boost duration for scrolls/flings
-            // Minimum boost duration for flings is equal to the minimum duration for taps
-            if (data) {
-                int input_duration = *((int*)data) + 200;
-                if (input_duration > min_duration) {
-                    duration = (input_duration > 5750) ? 5750 : input_duration;
-                }
+            if (data) { // Boost duration for scrolls/flings
+                get_int(FLING_MIN_BOOST_DURATION_PATH, &fling_min_boost_duration, 300);
+                get_int(FLING_MAX_BOOST_DURATION_PATH, &fling_max_boost_duration, 2500);
+                int input_duration = *((int*)data) + fling_min_boost_duration;
+                duration = (input_duration > fling_max_boost_duration) ? fling_max_boost_duration : input_duration;
 				isFling = true;
+            } else { // Boost duration for touches/taps
+                get_int(TOUCH_BOOST_DURATION_PATH, &duration, 300);
             }
 
             struct timespec cur_boost_timespec;
@@ -455,17 +469,23 @@ static void power_hint(struct power_module *module, power_hint_t hint,
             if (is_eas_governor(governor)) {
                 // Scrolls/flings
                 if (isFling) {
-                    int eas_interaction_resources[] = { MIN_FREQ_BIG_CORE_0, 1113, 
-                                                        MIN_FREQ_LITTLE_CORE_0, 1113, 
-                                                        STOR_CLK_SCALE_DIS, 0x0A, // For changing top-app boost to 10
+                    get_int(FLING_BOOST_TOPAPP_PATH, &fling_boost_topapp, 10);
+                    get_int(FLING_MIN_FREQ_BIG_PATH, &fling_min_freq_big, 1113);
+                    get_int(FLING_MIN_FREQ_LITTLE_PATH, &fling_min_freq_little, 1113);
+                    int eas_interaction_resources[] = { MIN_FREQ_BIG_CORE_0, fling_min_freq_big, 
+                                                        MIN_FREQ_LITTLE_CORE_0, fling_min_freq_little, 
+                                                        STOR_CLK_SCALE_DIS, fling_boost_topapp,
                                                         CPUBW_HWMON_MIN_FREQ, 0x33};
                     interaction(duration, sizeof(eas_interaction_resources)/sizeof(eas_interaction_resources[0]), eas_interaction_resources);
                 }
-                // Taps
+                // Touches/taps
                 else {
-                    int eas_interaction_resources[] = { MIN_FREQ_BIG_CORE_0, 729, 
-                                                        MIN_FREQ_LITTLE_CORE_0, 729, 
-                                                        //STOR_CLK_SCALE_DIS, 0x32, // For changing top-app boost to 50
+                    get_int(TOUCH_BOOST_TOPAPP_PATH, &touch_boost_topapp, 10);
+                    get_int(TOUCH_MIN_FREQ_BIG_PATH, &touch_min_freq_big, 1113);
+                    get_int(TOUCH_MIN_FREQ_LITTLE_PATH, &touch_min_freq_little, 1113);
+                    int eas_interaction_resources[] = { MIN_FREQ_BIG_CORE_0, touch_min_freq_big, 
+                                                        MIN_FREQ_LITTLE_CORE_0, touch_min_freq_little, 
+                                                        STOR_CLK_SCALE_DIS, touch_boost_topapp, 
                                                         CPUBW_HWMON_MIN_FREQ, 0x33};
                     interaction(duration, sizeof(eas_interaction_resources)/sizeof(eas_interaction_resources[0]), eas_interaction_resources);
                 }
