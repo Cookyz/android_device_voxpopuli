@@ -483,7 +483,7 @@ static void power_hint(struct power_module *module, power_hint_t hint,
             s_previous_duration = duration;
 
             // Scheduler is EAS.
-            if (is_eas_governor(governor)) {
+            if (true || is_eas_governor(governor)) {
                 // Scrolls/flings
                 if (isFling) {
                     get_int(FLING_BOOST_TOPAPP_PATH, &fling_boost_topapp, 10);
