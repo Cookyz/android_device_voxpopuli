@@ -17,9 +17,9 @@ ifeq ($(TARGET_USES_INTERACTION_BOOST),true)
     LOCAL_CFLAGS += -DINTERACTION_BOOST
 endif
 
-ifneq ($(TARGET_USES_AOSP),true)
-    LOCAL_CFLAGS += -DEXTRA_POWERHAL_HINTS
-endif
+#ifneq ($(TARGET_USES_AOSP),true)
+#    LOCAL_CFLAGS += -DEXTRA_POWERHAL_HINTS
+#endif
 
 # Double tap to wake
 ifneq ($(TARGET_TAP_TO_WAKE_NODE),)
