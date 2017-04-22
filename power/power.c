@@ -440,13 +440,6 @@ static void power_hint(struct power_module *module, power_hint_t hint,
         break;
         case POWER_HINT_INTERACTION:
         {
-            char governor[80];
-
-            if (get_scaling_governor(governor, sizeof(governor)) == -1) {
-                ALOGE("Can't obtain scaling governor.");
-                return;
-            }
-
             pthread_mutex_lock(&s_interaction_lock);
             if (sustained_performance_mode || vr_mode) {
                 pthread_mutex_unlock(&s_interaction_lock);
@@ -482,36 +475,27 @@ static void power_hint(struct power_module *module, power_hint_t hint,
             s_previous_boost_timespec = cur_boost_timespec;
             s_previous_duration = duration;
 
-            // Scheduler is EAS.
-            if (true || is_eas_governor(governor)) {
-                // Scrolls/flings
-                if (isFling) {
-                    get_int(FLING_BOOST_TOPAPP_PATH, &fling_boost_topapp, 10);
-                    get_int(FLING_MIN_FREQ_BIG_PATH, &fling_min_freq_big, 1113);
-                    get_int(FLING_MIN_FREQ_LITTLE_PATH, &fling_min_freq_little, 1113);
-                    int eas_interaction_resources[] = { MIN_FREQ_BIG_CORE_0, fling_min_freq_big, 
-                                                        MIN_FREQ_LITTLE_CORE_0, fling_min_freq_little, 
-                                                        STOR_CLK_SCALE_DIS, fling_boost_topapp,
-                                                        CPUBW_HWMON_MIN_FREQ, 0x33};
-                    interaction(duration, sizeof(eas_interaction_resources)/sizeof(eas_interaction_resources[0]), eas_interaction_resources);
-                }
-                // Touches/taps
-                else {
-                    get_int(TOUCH_BOOST_TOPAPP_PATH, &touch_boost_topapp, 10);
-                    get_int(TOUCH_MIN_FREQ_BIG_PATH, &touch_min_freq_big, 1113);
-                    get_int(TOUCH_MIN_FREQ_LITTLE_PATH, &touch_min_freq_little, 1113);
-                    int eas_interaction_resources[] = { MIN_FREQ_BIG_CORE_0, touch_min_freq_big, 
-                                                        MIN_FREQ_LITTLE_CORE_0, touch_min_freq_little, 
-                                                        STOR_CLK_SCALE_DIS, touch_boost_topapp, 
-                                                        CPUBW_HWMON_MIN_FREQ, 0x33};
-                    interaction(duration, sizeof(eas_interaction_resources)/sizeof(eas_interaction_resources[0]), eas_interaction_resources);
-                }
-            } else { // Scheduler is HMP.
-                int hmp_interaction_resources[] = { CPUBW_HWMON_MIN_FREQ, 0x33, 
-                                                    MIN_FREQ_BIG_CORE_0, 1000, 
-                                                    MIN_FREQ_LITTLE_CORE_0, 1000, 
-                                                    SCHED_BOOST_ON_V3, 0x1};
-                interaction(duration, sizeof(hmp_interaction_resources)/sizeof(hmp_interaction_resources[0]), hmp_interaction_resources);
+            // Scrolls/flings
+            if (isFling) {
+                get_int(FLING_BOOST_TOPAPP_PATH, &fling_boost_topapp, 10);
+                get_int(FLING_MIN_FREQ_BIG_PATH, &fling_min_freq_big, 1113);
+                get_int(FLING_MIN_FREQ_LITTLE_PATH, &fling_min_freq_little, 1113);
+                int eas_interaction_resources[] = { MIN_FREQ_BIG_CORE_0, fling_min_freq_big, 
+                                                    MIN_FREQ_LITTLE_CORE_0, fling_min_freq_little, 
+                                                    STOR_CLK_SCALE_DIS, fling_boost_topapp,
+                                                    CPUBW_HWMON_MIN_FREQ, 0x33};
+                interaction(duration, sizeof(eas_interaction_resources)/sizeof(eas_interaction_resources[0]), eas_interaction_resources);
+            }
+            // Touches/taps
+            else {
+                get_int(TOUCH_BOOST_TOPAPP_PATH, &touch_boost_topapp, 10);
+                get_int(TOUCH_MIN_FREQ_BIG_PATH, &touch_min_freq_big, 1113);
+                get_int(TOUCH_MIN_FREQ_LITTLE_PATH, &touch_min_freq_little, 1113);
+                int eas_interaction_resources[] = { MIN_FREQ_BIG_CORE_0, touch_min_freq_big, 
+                                                    MIN_FREQ_LITTLE_CORE_0, touch_min_freq_little, 
+                                                    STOR_CLK_SCALE_DIS, touch_boost_topapp, 
+                                                    CPUBW_HWMON_MIN_FREQ, 0x33};
+                interaction(duration, sizeof(eas_interaction_resources)/sizeof(eas_interaction_resources[0]), eas_interaction_resources);
             }
             pthread_mutex_unlock(&s_interaction_lock);
         }
