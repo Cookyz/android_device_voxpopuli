@@ -121,17 +121,17 @@ static pthread_mutex_t s_interaction_lock = PTHREAD_MUTEX_INITIALIZER;
 static struct timespec s_previous_boost_timespec;
 static int s_previous_duration;
 
-// Initialise Vox Populi variables
-int enable_interaction_boost = -1;
-int fling_min_boost_duration = -1;
-int fling_max_boost_duration = -1;
-int fling_boost_topapp = -1;
-int fling_min_freq_big = -1;
-int fling_min_freq_little = -1;
-int touch_boost_duration = -1;
-int touch_boost_topapp = -1;
-int touch_min_freq_big = -1;
-int touch_min_freq_little = -1;
+// Create Vox Populi variables
+int enable_interaction_boost;
+int fling_min_boost_duration;
+int fling_max_boost_duration;
+int fling_boost_topapp;
+int fling_min_freq_big;
+int fling_min_freq_little;
+int boost_duration;
+int touch_boost_topapp;
+int touch_min_freq_big;
+int touch_min_freq_little;
 
 static struct hw_module_methods_t power_module_methods = {
     .open = NULL,
@@ -156,6 +156,18 @@ static void power_init(struct power_module *module)
         }
         close(fd);
     }
+
+    // Initialise Vox Populi tunables
+    get_int(ENABLE_INTERACTION_BOOST_PATH, &enable_interaction_boost, 1);
+    get_int(FLING_MIN_BOOST_DURATION_PATH, &fling_min_boost_duration, 300);
+    get_int(FLING_MAX_BOOST_DURATION_PATH, &fling_max_boost_duration, 2500);
+    get_int(FLING_BOOST_TOPAPP_PATH, &fling_boost_topapp, 10);
+    get_int(FLING_MIN_FREQ_BIG_PATH, &fling_min_freq_big, 1113);
+    get_int(FLING_MIN_FREQ_LITTLE_PATH, &fling_min_freq_little, 1113);
+    get_int(TOUCH_BOOST_DURATION_PATH, &boost_duration, 300);
+    get_int(TOUCH_BOOST_TOPAPP_PATH, &touch_boost_topapp, 10);
+    get_int(TOUCH_MIN_FREQ_BIG_PATH, &touch_min_freq_big, 1113);
+    get_int(TOUCH_MIN_FREQ_LITTLE_PATH, &touch_min_freq_little, 1113);
 }
 
 static void process_video_decode_hint(void *metadata)
@@ -447,57 +459,57 @@ static void power_hint(struct power_module *module, power_hint_t hint,
             }
 
             // Check if interaction_boost is enabled
-            get_int(ENABLE_INTERACTION_BOOST_PATH, &enable_interaction_boost, 1);
             if (!enable_interaction_boost)
                 break;
-            int duration;
             bool isFling = false;
 
             if (data) { // Boost duration for scrolls/flings
-                get_int(FLING_MIN_BOOST_DURATION_PATH, &fling_min_boost_duration, 300);
-                get_int(FLING_MAX_BOOST_DURATION_PATH, &fling_max_boost_duration, 2500);
                 int input_duration = *((int*)data) + fling_min_boost_duration;
-                duration = (input_duration > fling_max_boost_duration) ? fling_max_boost_duration : input_duration;
+                boost_duration = (input_duration > fling_max_boost_duration) ? fling_max_boost_duration : input_duration;
 				isFling = true;
-            } else { // Boost duration for touches/taps
-                get_int(TOUCH_BOOST_DURATION_PATH, &duration, 300);
-            }
+            } 
 
             struct timespec cur_boost_timespec;
             clock_gettime(CLOCK_MONOTONIC, &cur_boost_timespec);
 
             long long elapsed_time = calc_timespan_us(s_previous_boost_timespec, cur_boost_timespec);
             // don't hint if previous hint's duration covers this hint's duration
-            if ((s_previous_duration * 1000) > (elapsed_time + duration * 1000)) {
+            if ((s_previous_duration * 1000) > (elapsed_time + boost_duration * 1000)) {
                 pthread_mutex_unlock(&s_interaction_lock);
                 return;
             }
             s_previous_boost_timespec = cur_boost_timespec;
-            s_previous_duration = duration;
+            s_previous_duration = boost_duration;
 
             // Scrolls/flings
             if (isFling) {
-                get_int(FLING_BOOST_TOPAPP_PATH, &fling_boost_topapp, 10);
-                get_int(FLING_MIN_FREQ_BIG_PATH, &fling_min_freq_big, 1113);
-                get_int(FLING_MIN_FREQ_LITTLE_PATH, &fling_min_freq_little, 1113);
                 int eas_interaction_resources[] = { MIN_FREQ_BIG_CORE_0, fling_min_freq_big, 
                                                     MIN_FREQ_LITTLE_CORE_0, fling_min_freq_little, 
                                                     STOR_CLK_SCALE_DIS, fling_boost_topapp,
                                                     CPUBW_HWMON_MIN_FREQ, 0x33};
-                interaction(duration, sizeof(eas_interaction_resources)/sizeof(eas_interaction_resources[0]), eas_interaction_resources);
+                interaction(boost_duration, sizeof(eas_interaction_resources)/sizeof(eas_interaction_resources[0]), eas_interaction_resources);
             }
             // Touches/taps
             else {
-                get_int(TOUCH_BOOST_TOPAPP_PATH, &touch_boost_topapp, 10);
-                get_int(TOUCH_MIN_FREQ_BIG_PATH, &touch_min_freq_big, 1113);
-                get_int(TOUCH_MIN_FREQ_LITTLE_PATH, &touch_min_freq_little, 1113);
                 int eas_interaction_resources[] = { MIN_FREQ_BIG_CORE_0, touch_min_freq_big, 
                                                     MIN_FREQ_LITTLE_CORE_0, touch_min_freq_little, 
                                                     STOR_CLK_SCALE_DIS, touch_boost_topapp, 
                                                     CPUBW_HWMON_MIN_FREQ, 0x33};
-                interaction(duration, sizeof(eas_interaction_resources)/sizeof(eas_interaction_resources[0]), eas_interaction_resources);
+                interaction(boost_duration, sizeof(eas_interaction_resources)/sizeof(eas_interaction_resources[0]), eas_interaction_resources);
             }
             pthread_mutex_unlock(&s_interaction_lock);
+
+            // Update tunable values again
+            get_int(ENABLE_INTERACTION_BOOST_PATH, &enable_interaction_boost, 1);
+            get_int(FLING_MIN_BOOST_DURATION_PATH, &fling_min_boost_duration, 300);
+            get_int(FLING_MAX_BOOST_DURATION_PATH, &fling_max_boost_duration, 2500);
+            get_int(FLING_BOOST_TOPAPP_PATH, &fling_boost_topapp, 10);
+            get_int(FLING_MIN_FREQ_BIG_PATH, &fling_min_freq_big, 1113);
+            get_int(FLING_MIN_FREQ_LITTLE_PATH, &fling_min_freq_little, 1113);
+            get_int(TOUCH_BOOST_DURATION_PATH, &boost_duration, 300);
+            get_int(TOUCH_BOOST_TOPAPP_PATH, &touch_boost_topapp, 10);
+            get_int(TOUCH_MIN_FREQ_BIG_PATH, &touch_min_freq_big, 1113);
+            get_int(TOUCH_MIN_FREQ_LITTLE_PATH, &touch_min_freq_little, 1113);
         }
         break;
         case POWER_HINT_VIDEO_ENCODE:
