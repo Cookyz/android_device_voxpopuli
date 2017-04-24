@@ -459,8 +459,10 @@ static void power_hint(struct power_module *module, power_hint_t hint,
             }
 
             // Check if interaction_boost is enabled
-            if (!enable_interaction_boost)
+            if (!enable_interaction_boost) {
+                pthread_mutex_unlock(&s_interaction_lock);
                 break;
+            }
             bool isFling = false;
 
             if (data) { // Boost duration for scrolls/flings
