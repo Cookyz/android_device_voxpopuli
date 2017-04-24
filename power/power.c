@@ -459,45 +459,39 @@ static void power_hint(struct power_module *module, power_hint_t hint,
             }
 
             // Check if interaction_boost is enabled
-            if (!enable_interaction_boost) {
-                pthread_mutex_unlock(&s_interaction_lock);
-                break;
-            }
-            bool isFling = false;
+            if (enable_interaction_boost) {
+                if (data) { // Boost duration for scrolls/flings
+                    int input_duration = *((int*)data) + fling_min_boost_duration;
+                    boost_duration = (input_duration > fling_max_boost_duration) ? fling_max_boost_duration : input_duration;
+                } 
 
-            if (data) { // Boost duration for scrolls/flings
-                int input_duration = *((int*)data) + fling_min_boost_duration;
-                boost_duration = (input_duration > fling_max_boost_duration) ? fling_max_boost_duration : input_duration;
-				isFling = true;
-            } 
+                struct timespec cur_boost_timespec;
+                clock_gettime(CLOCK_MONOTONIC, &cur_boost_timespec);
+                long long elapsed_time = calc_timespan_us(s_previous_boost_timespec, cur_boost_timespec);
+                // don't hint if previous hint's duration covers this hint's duration
+                if ((s_previous_duration * 1000) > (elapsed_time + boost_duration * 1000)) {
+                    pthread_mutex_unlock(&s_interaction_lock);
+                    return;
+                }
+                s_previous_boost_timespec = cur_boost_timespec;
+                s_previous_duration = boost_duration;
 
-            struct timespec cur_boost_timespec;
-            clock_gettime(CLOCK_MONOTONIC, &cur_boost_timespec);
-
-            long long elapsed_time = calc_timespan_us(s_previous_boost_timespec, cur_boost_timespec);
-            // don't hint if previous hint's duration covers this hint's duration
-            if ((s_previous_duration * 1000) > (elapsed_time + boost_duration * 1000)) {
-                pthread_mutex_unlock(&s_interaction_lock);
-                return;
-            }
-            s_previous_boost_timespec = cur_boost_timespec;
-            s_previous_duration = boost_duration;
-
-            // Scrolls/flings
-            if (isFling) {
-                int eas_interaction_resources[] = { MIN_FREQ_BIG_CORE_0, fling_min_freq_big, 
-                                                    MIN_FREQ_LITTLE_CORE_0, fling_min_freq_little, 
-                                                    STOR_CLK_SCALE_DIS, fling_boost_topapp,
-                                                    CPUBW_HWMON_MIN_FREQ, 0x33};
-                interaction(boost_duration, sizeof(eas_interaction_resources)/sizeof(eas_interaction_resources[0]), eas_interaction_resources);
-            }
-            // Touches/taps
-            else {
-                int eas_interaction_resources[] = { MIN_FREQ_BIG_CORE_0, touch_min_freq_big, 
-                                                    MIN_FREQ_LITTLE_CORE_0, touch_min_freq_little, 
-                                                    STOR_CLK_SCALE_DIS, touch_boost_topapp, 
-                                                    CPUBW_HWMON_MIN_FREQ, 0x33};
-                interaction(boost_duration, sizeof(eas_interaction_resources)/sizeof(eas_interaction_resources[0]), eas_interaction_resources);
+                // Scrolls/flings
+                if (data) {
+                    int eas_interaction_resources[] = { MIN_FREQ_BIG_CORE_0, fling_min_freq_big, 
+                                                        MIN_FREQ_LITTLE_CORE_0, fling_min_freq_little, 
+                                                        STOR_CLK_SCALE_DIS, fling_boost_topapp,
+                                                        CPUBW_HWMON_MIN_FREQ, 0x33};
+                    interaction(boost_duration, sizeof(eas_interaction_resources)/sizeof(eas_interaction_resources[0]), eas_interaction_resources);
+                }
+                // Touches/taps
+                else {
+                    int eas_interaction_resources[] = { MIN_FREQ_BIG_CORE_0, touch_min_freq_big, 
+                                                        MIN_FREQ_LITTLE_CORE_0, touch_min_freq_little, 
+                                                        STOR_CLK_SCALE_DIS, touch_boost_topapp, 
+                                                        CPUBW_HWMON_MIN_FREQ, 0x33};
+                    interaction(boost_duration, sizeof(eas_interaction_resources)/sizeof(eas_interaction_resources[0]), eas_interaction_resources);
+                }
             }
             pthread_mutex_unlock(&s_interaction_lock);
 
