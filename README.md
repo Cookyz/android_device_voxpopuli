@@ -81,3 +81,6 @@ on boot
 6. Replace the perfd binary from your proprietary vendor repo with the **EAS-compatible** Marlin perfd. [Example commit here](https://github.com/myfluxi/proprietary_vendor_oneplus/commit/cdd71f9dfc4c23afd4d550f4d20b1f52835dd7c1).
 7. Please maintain the original commit history and authorship, and **do not kang my work** :p
 8. Please provide clear credits to me, [@joshuous](https://github.com/joshuous/), if you're using Vox Populi.
+
+## Getting started for Kernel Developers (coming soon...)
+Porting EAS to any device with a flashable...
