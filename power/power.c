@@ -55,7 +55,7 @@
 #include <dlfcn.h>
 #include <stdlib.h>
 
-#define LOG_TAG "QCOM PowerHAL"
+#define LOG_TAG "Vox Populi PowerHAL"
 #include <utils/Log.h>
 #include <hardware/hardware.h>
 #include <hardware/power.h>
@@ -139,7 +139,7 @@ static struct hw_module_methods_t power_module_methods = {
 
 static void power_init(struct power_module *module)
 {
-    ALOGI("QCOM power HAL initing.");
+    ALOGI("Vox Populi Power HAL initing.");
 
     int fd;
     char buf[10] = {0};

@@ -36,7 +36,7 @@
 #include <dlfcn.h>
 #include <stdlib.h>
 
-#define LOG_TAG "QCOM PowerHAL"
+#define LOG_TAG "Vox Populi PowerHAL"
 #include <utils/Log.h>
 #include <hardware/hardware.h>
 #include <hardware/power.h>
