@@ -850,12 +850,21 @@ static int get_platform_low_power_stats(struct power_module *module,
 void set_feature(struct power_module *module, feature_t feature, int state)
 {
     char tmp_str[NODE_MAX];
+    switch (feature) {
 #ifdef TAP_TO_WAKE_NODE
-    if (feature == POWER_FEATURE_DOUBLE_TAP_TO_WAKE) {
-        snprintf(tmp_str, NODE_MAX, "%d", state);
-        sysfs_write(TAP_TO_WAKE_NODE, tmp_str);
-    }
+        case POWER_FEATURE_DOUBLE_TAP_TO_WAKE:
+            snprintf(tmp_str, NODE_MAX, "%d", state);
+            sysfs_write(TAP_TO_WAKE_NODE, tmp_str);
+            break;
 #endif
+#ifdef HIGH_BRIGHTNESS_MODE_NODE
+        case POWER_FEATURE_HIGH_BRIGHTNESS_MODE:
+            sysfs_write(HIGH_BRIGHTNESS_MODE_NODE, state ? "1" : "0");
+            break;
+#endif
+        default:
+            break;
+    }
 }
 
 struct power_module HAL_MODULE_INFO_SYM = {
